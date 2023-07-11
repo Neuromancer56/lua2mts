@@ -60,17 +60,21 @@ local function loadSchematicNEW(path)
     return func and env.schematic
 end
 
-
 local function loadSchematic(path)
-    local env, file = {}, io.open(path)
-    local func = loadstring(file:read("*a"))
-
-    setfenv(func, env)
-    func()
-    file:close()
-
-    return env.schematic
+	local env, file = {}, io.open(path)
+	local fileContents = file:read("*a")
+	file:close()
+	if not fileContents:match("^%s*schematic%s*=%s*") then
+		minetest.log("error", "File is not a valid schematic file.  Please use caution. " .. path)
+		return "Error: File is not a valid schematic file.  Please use caution."
+	end
+	minetest.log("Processing:", "Processing schematic file.")
+	local func = loadstring(fileContents)
+	setfenv(func, env)
+	func()
+	return env.schematic
 end
+
 
 local function replaceTextInFile(file_path, string_to_replace, replacement, modified_file_suffix)
 	-- Read the file content
@@ -141,7 +145,7 @@ minetest.register_chatcommand("lua2mts", {
 
 
 -- [chatcommand] Convert .lua file to MTS schematic file
-minetest.register_chatcommand("lua2mtsOLD", {
+--[[minetest.register_chatcommand("lua2mtsOLD", {
 	description = S("Convert .lua file to .mts schematic file"),
 	privs = {server = true},
 	params = S("<lua file>"),
@@ -169,4 +173,4 @@ minetest.register_chatcommand("lua2mtsOLD", {
 		mts_save(mts_path, schematic)
 		return true, S("Exported schematic to " .. mts_path .. ".mts")
 	end,
-})
+})]]
