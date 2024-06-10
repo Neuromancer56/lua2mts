@@ -131,26 +131,22 @@ end
 minetest.register_chatcommand("lua2mts", {
 	description = S("Convert .lua file to .mts schematic file"),
 	privs = {server = true},
-	params = S("<file>"),
+	params = S("<lua file>"),
 	func = function(name, param)
-		local file = param
+		local lua_file = param
 
-		if not file then
+		if not lua_file then
 			return false, S("No Lua file specified.")
 		end
 
-		local path = export_path_full .. DIR_DELIM .. file .. ".lua"
-		local schematic, err = loadSchematic(path)
+		local lua_path = export_path_full .. DIR_DELIM .. lua_file .. ".lua"
+		local schematic, err = loadSchematic(lua_path)
 		if not schematic then
 			return false, S(err or "Invalid schematic data in Lua file.")
 		end
 		--logTable(schematic2)
-		local mts_path = file:gsub("%.lua$", "")  -- Remove .lua extension
+		local mts_path = lua_file:gsub("%.lua$", "")  -- Remove .lua extension
 			mts_save(mts_path, schematic)
-		--local success, err_msg = mts_save(mts_path, schematic)
-		--if not success then
-		--	return false, err_msg
-		--end
 		return true, S("Exported schematic to " .. mts_path .. ".mts")
 	end,
 })
