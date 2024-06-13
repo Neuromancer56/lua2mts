@@ -4,9 +4,11 @@ if minetest.get_translator then
 else
 	S = function(s) return s end
 end
+
 -- Directory separator
 local DIR_DELIM = "/"
 local export_path_full = table.concat({minetest.get_worldpath(), "schems"}, DIR_DELIM)
+
 ------------------------------------START LUA2MTS EXTRAS-----------------------------------------
 -- Define a function to log the contents of a table
 local function logTable(tableToLog)
@@ -49,6 +51,9 @@ local function logSchematicTable(schematic_table)
 local function loadSchematicNEW(path)
     local env = {}
     local file = io.open(path)
+    if not file then
+        return nil, "File not found"
+    end
     local code = file:read("*a")
     file:close()
 
@@ -62,11 +67,14 @@ end
 
 local function loadSchematic(path)
 	local env, file = {}, io.open(path)
+	if not file then
+        return nil, "File not found"
+    end
 	local fileContents = file:read("*a")
 	file:close()
 	if not fileContents:match("^%s*schematic%s*=%s*") then
-		minetest.log("error", "File is not a valid schematic file.  Please use caution. " .. path)
-		return "Error: File is not a valid schematic file.  Please use caution."
+		minetest.log("error", "File is not a valid schematic file. Please use caution. " .. path)
+		return nil, "File is not a valid schematic file. Please use caution."
 	end
 	minetest.log("Processing:", "Processing schematic file.")
 	local func = loadstring(fileContents)
@@ -132,17 +140,16 @@ minetest.register_chatcommand("lua2mts", {
 		end
 
 		local lua_path = export_path_full .. DIR_DELIM .. lua_file .. ".lua"
-		local schematic = loadSchematic(lua_path)
-		if type(schematic) ~= "table" then
-			return false, S("Invalid schematic data in Lua file.")
+		local schematic, err = loadSchematic(lua_path)
+		if not schematic then
+			return false, S(err or "Invalid schematic data in Lua file.")
 		end
 		--logTable(schematic2)
 		local mts_path = lua_file:gsub("%.lua$", "")  -- Remove .lua extension
-		mts_save(mts_path, schematic)
+			mts_save(mts_path, schematic)
 		return true, S("Exported schematic to " .. mts_path .. ".mts")
 	end,
 })
-
 
 -- [chatcommand] Convert .lua file to MTS schematic file
 --[[minetest.register_chatcommand("lua2mtsOLD", {
