@@ -143,7 +143,10 @@ minetest.register_chatcommand("lua2mts", {
 		local schematic, err = loadSchematic(lua_path)
 		if not schematic then
 			return false, S(err or "Invalid schematic data in Lua file.")
+		elseif type(schematic) ~= "table" then  --this is a bit of a safety check to make sure the lua file wasn't an executable but is just a table
+			return false, S("Invalid schematic data in Lua file.")
 		end
+		
 		--logTable(schematic2)
 		local mts_path = lua_file:gsub("%.lua$", "")  -- Remove .lua extension
 			mts_save(mts_path, schematic)
